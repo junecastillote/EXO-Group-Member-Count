@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory, ValueFromPipeline )]
+    [Parameter( Mandatory, ValueFromPipeline )]
     $Identity
 )
 
@@ -38,24 +38,25 @@ process {
             }
         }
 
-        $owners = @(
-            if ($groupObject.ManagedBy) {
-                (
-                    $groupObject.ManagedBy | ForEach-Object {
-                        $temp = Get-Recipient -Identity $_
-                        if ($temp.WindowsLiveId) { $temp.WindowsLiveId }
-                        else { $temp.Id }
-                    }
-                )
-            }
-        )
+        # $owners = @(
+        #     if ($groupObject.ManagedBy) {
+        #         (
+        #             $groupObject.ManagedBy | ForEach-Object {
+        #                 $temp = Get-Recipient -Identity $_
+        #                 if ($temp.WindowsLiveId) { $temp.WindowsLiveId }
+        #                 else { $temp.Id }
+        #             }
+        #         )
+        #     }
+        # )
 
         [PSCustomObject]@{
             GroupName    = $groupObject.Name
             GroupEmail   = $groupObject.PrimarySmtpAddress
             GroupType    = $groupObject.RecipientTypeDetails
             TeamsEnabled = $teamsEnabled
-            Owners       = $owners -join ", "
+            # Owners       = $owners -join ", "
+            Owners       = $groupObject.ManagedBy -join ", "
             MemberCount  = $groupMemberCount
         }
 
