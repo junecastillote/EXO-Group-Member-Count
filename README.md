@@ -82,8 +82,8 @@ flowchart TD
     subgraph ExchangeOnline
         E1[Get-ConnectionInformation]
         E2[Get-Recipient]
-        E3[Get-DistributionGroup / Get-DynamicDistributionGroup / Get-UnifiedGroup]
-        E4[Get-DistributionGroupMember / Get-Recipient \(for owners\)]
+        E3["Get-DistributionGroup / Get-DynamicDistributionGroup / Get-UnifiedGroup"]
+        E4["Get-DistributionGroupMember / Get-Recipient (for owners)"]
     end
 
     %% CONNECTION FLOW
