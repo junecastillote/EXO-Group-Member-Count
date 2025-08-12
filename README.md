@@ -12,9 +12,9 @@ It supports exporting results to CSV or returning them directly in the console.
 
 ## Requirements
 
-- PowerShell 7+
-- ExchangeOnlineManagement module
-- Exchange Online administrative permissions
+- **PowerShell**: 7.0 or later
+- **Modules**: [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement)
+- An active **Exchange Online PowerShell session** (via `Connect-ExchangeOnline`)
 
 ## Features
 
@@ -24,25 +24,103 @@ It supports exporting results to CSV or returning them directly in the console.
 - Can output to both CSV and console.
 - Validates Exchange Online connection before processing.
 
-## Usage
-
-```powershell
-# Basic usage with console output
-./Get-EXOGroupMemberCount.ps1 -Identity "GroupName" -ReturnResult
-
-# Export results to CSV
-./Get-EXOGroupMemberCount.ps1 -Identity "GroupName" -OutputCsv "output.csv"
-
-# Pipeline usage with owner resolution
-"Group1", "Group2" | ./Get-EXOGroupMemberCount.ps1 -ResolveOwner -OutputCsv "output.csv"
-```
-
 ## Parameters
 
-- **Identity** *(Mandatory)*: Identity of the group to retrieve information for.
-- **ResolveOwner** *(Switch)*: Retrieves the full owner list for the group.
-- **OutputCsv** *(String)*: Path to export results to CSV.
-- **ReturnResult** *(Switch)*: Returns results to console.
+| Parameter       | Type                    | Mandatory | Description                                                                                           |
+| --------------- | ----------------------- | --------- | ----------------------------------------------------------------------------------------------------- |
+| `-Identity`     | String / Pipeline input | Yes       | One or more group identities (name, alias, SMTP address, GUID, etc.). Accepts pipeline input.         |
+| `-ResolveOwner` | Switch                  | No        | If specified, resolves the **ManagedBy** property to user-friendly identifiers (e.g., WindowsLiveId). |
+| `-OutputCsv`    | String                  | No        | Path to a CSV file to export results. If the file exists, it will be overwritten.                     |
+| `-ReturnResult` | Switch                  | No        | Returns the result objects to the pipeline. Enabled automatically if no output method is specified.   |
+
+---
+
+## Output
+
+The script returns or exports objects with the following properties:
+
+| Property       | Description                                                                     |
+| -------------- | ------------------------------------------------------------------------------- |
+| `GroupName`    | Display name of the group                                                       |
+| `GroupEmail`   | Primary SMTP address                                                            |
+| `GroupType`    | Recipient type details (e.g., `GroupMailbox`, `MailUniversalDistributionGroup`) |
+| `TeamsEnabled` | `Yes` / `No` for Teams-enabled Microsoft 365 Groups, or `N/A` for other types   |
+| `Owners`       | Owner(s) of the group (resolved if `-ResolveOwner` is used)                     |
+| `MemberCount`  | Number of members in the group                                                  |
+
+---
+
+## Usage Examples
+
+### 1. Return results to screen
+
+```powershell
+.\Get-EXOGroupMemberCount.ps1 -Identity "Marketing Team"
+```
+
+### 2. Export results to CSV
+
+```powershell
+.\Get-EXOGroupMemberCount.ps1 -Identity "Marketing Team" -OutputCsv "C:\Reports\GroupMembers.csv"
+```
+
+### 3. Resolve owner names
+
+```PowerShell
+.\Get-EXOGroupMemberCount.ps1 -Identity "Marketing Team" -ResolveOwner
+```
+
+### 4. Multiple groups via pipeline
+
+```powershell
+"Marketing Team","Sales Team" | .\Get-EXOGroupMemberCount.ps1 -ResolveOwner -OutputCsv ".\Groups.csv"
+```
+
+---
+
+## Script Flow Overview
+
+## Script Flow Overview
+
+```text
++--------------------------+
+|   Start Script           |
++--------------------------+
+           |
+           v
++--------------------------+
+| BEGIN block              |
+| - Verify EXO connection  |
+| - Initialize result list |
+| - Handle defaults        |
+| - Prepare output file    |
++--------------------------+
+           |
+           v
++--------------------------+
+| PROCESS block            |
+| - For each Identity:     |
+|   * Get-Recipient        |
+|   * Identify group type  |
+|   * Get group details    |
+|   * Count members        |
+|   * Resolve owners (opt) |
+|   * Store in results     |
++--------------------------+
+           |
+           v
++--------------------------+
+| END block                |
+| - Export to CSV (if set) |
+| - Return results (if set)|
++--------------------------+
+           |
+           v
++--------------------------+
+|         Done             |
++--------------------------+
+
+---
 
 ## Script Architecture Overview
 
