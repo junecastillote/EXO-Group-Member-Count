@@ -11,6 +11,7 @@
   - [3. Resolve owner names](#3-resolve-owner-names)
   - [4. Multiple groups via pipeline](#4-multiple-groups-via-pipeline)
 - [Script Flow Overview](#script-flow-overview)
+- [Script Architecture Overview](#script-architecture-overview)
 - [Notes](#notes)
 
 ## Overview
@@ -130,6 +131,8 @@ The script returns or exports objects with the following properties:
 +--------------------------+
 |         Done             |
 +--------------------------+
+
+```
 
 ---
 
