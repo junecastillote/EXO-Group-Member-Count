@@ -1,6 +1,7 @@
 # Get-EXOGroupMemberCount.ps1
-#requires -Version 7.0
-#requires -Modules ExchangeOnlineManagement
+
+#Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.7.0" }
+
 
 [CmdletBinding()]
 param (
@@ -129,7 +130,7 @@ end {
 
     if ($OutputCsv) {
         $results | Export-Csv -NoTypeInformation -Path $OutputCsv
-        Write-Verbose "Results saved to $((Resolve-Path $OutputCsv).Path))"
+        Write-Verbose "Results saved to [$((Resolve-Path $OutputCsv).Path)]"
     }
 
     if ($ReturnResult) {
