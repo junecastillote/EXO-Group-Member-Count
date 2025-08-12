@@ -1,5 +1,18 @@
 # Get-EXOGroupMemberCount.ps1
 
+- [Overview](#overview)
+- [Requirements](#requirements)
+- [Features](#features)
+- [Parameters](#parameters)
+- [Output](#output)
+- [Usage Examples](#usage-examples)
+  - [1. Return results to screen](#1-return-results-to-screen)
+  - [2. Export results to CSV](#2-export-results-to-csv)
+  - [3. Resolve owner names](#3-resolve-owner-names)
+  - [4. Multiple groups via pipeline](#4-multiple-groups-via-pipeline)
+- [Script Flow Overview](#script-flow-overview)
+- [Notes](#notes)
+
 ## Overview
 
 `Get-EXOGroupMemberCount.ps1` is a PowerShell script for retrieving member counts and owner details for Exchange Online groups, including:
@@ -77,8 +90,6 @@ The script returns or exports objects with the following properties:
 ```
 
 ---
-
-## Script Flow Overview
 
 ## Script Flow Overview
 
