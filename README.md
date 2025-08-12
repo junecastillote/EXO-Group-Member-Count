@@ -26,7 +26,7 @@ It supports exporting results to CSV or returning them directly in the console.
 
 ## Requirements
 
-- **PowerShell**: 7.0 or later
+- **PowerShell**: 7.3 or later (recommended), Windows PowerShell 5.1
 - **Modules**: [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement)
 - An active **Exchange Online PowerShell session** (via `Connect-ExchangeOnline`)
 
@@ -44,7 +44,7 @@ It supports exporting results to CSV or returning them directly in the console.
 | --------------- | ----------------------- | --------- | ----------------------------------------------------------------------------------------------------- |
 | `-Identity`     | String / Pipeline input | Yes       | One or more group identities (name, alias, SMTP address, GUID, etc.). Accepts pipeline input.         |
 | `-ResolveOwner` | Switch                  | No        | If specified, resolves the **ManagedBy** property to user-friendly identifiers (e.g., WindowsLiveId). |
-| `-OutputCsv`    | String                  | No        | Path to a CSV file to export results. If the file exists, it will be overwritten.                     |
+| `-OutputCsv`    | String                  | No        | Path to a CSV file to export results. **If the file exists, it will be overwritten.**                     |
 | `-ReturnResult` | Switch                  | No        | Returns the result objects to the pipeline. Enabled automatically if no output method is specified.   |
 
 ---
