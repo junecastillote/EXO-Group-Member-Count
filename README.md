@@ -27,7 +27,7 @@ It supports exporting results to CSV or returning them directly in the console.
 ## Requirements
 
 - **PowerShell**: 7.3 or later (recommended), Windows PowerShell 5.1
-- **Modules**: [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement)
+- **Modules**: [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement) 3.7.0 or later.
 - An active **Exchange Online PowerShell session** (via `Connect-ExchangeOnline`)
 
 ## Features
