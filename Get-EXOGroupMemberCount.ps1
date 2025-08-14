@@ -1,5 +1,74 @@
 # Get-EXOGroupMemberCount.ps1
 
+<#PSScriptInfo
+
+.VERSION 1.1
+
+.GUID 81957754-8733-48ab-b439-b00c72c75c0a
+
+.AUTHOR June Castillote
+
+.COMPANYNAME
+
+.COPYRIGHT
+
+.TAGS Microsoft 365, Microsoft Graph, Exchange Online, Distribution Group, Dynamic Distribution Group, Group Members, Microsoft 365 Group
+
+.LICENSEURI https://github.com/junecastillote/EXO-Group-Member-Count/blob/main/LICENSE
+
+.PROJECTURI https://github.com/junecastillote/EXO-Group-Member-Count
+
+.ICONURI
+
+.EXTERNALMODULEDEPENDENCIES
+
+.REQUIREDSCRIPTS
+
+.EXTERNALSCRIPTDEPENDENCIES
+
+.RELEASENOTES
+
+
+.PRIVATEDATA
+
+#>
+
+<#
+.SYNOPSIS
+    Get-EXOGroupMemberCount.ps1 is a PowerShell script for retrieving member counts and owner details for Exchange Online groups.
+.DESCRIPTION
+    A PowerShell script for retrieving member counts and owner details for Exchange Online groups, including:
+
+    * Distribution Groups
+    * Dynamic Distribution Groups
+    * Microsoft 365 Groups (Unified Groups)
+
+    It supports exporting results to CSV or returning them directly in the console.
+.NOTES
+
+.LINK
+    https://github.com/junecastillote/EXO-Group-Member-Count?tab=readme-ov-file
+.EXAMPLE
+    .\Get-EXOGroupMemberCount.ps1 -Identity "Marketing Team"
+
+    Return results to screen
+.EXAMPLE
+    .\Get-EXOGroupMemberCount.ps1 -Identity "Marketing Team" -OutputCsv "C:\Reports\GroupMembers.csv"
+
+    Export results to CSV
+.EXAMPLE
+    .\Get-EXOGroupMemberCount.ps1 -Identity "Marketing Team" -OutputCsv "C:\Reports\GroupMembers.csv" -Append
+
+    Append results to a new or existing CSV
+
+.EXAMPLE
+    "Marketing Team","Sales Team" | .\Get-EXOGroupMemberCount.ps1 -OutputCsv ".\Groups.csv"
+
+    Multiple groups via pipeline
+#>
+
+
+
 #Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.7.0" }
 #Requires -Modules Microsoft.Graph.Authentication,Microsoft.Graph.Groups
 
