@@ -1,6 +1,7 @@
 # Get-EXOGroupMemberCountGraph.ps1
 
 #Requires -Modules @{ ModuleName="ExchangeOnlineManagement"; ModuleVersion="3.7.0" }
+#Requires -Modules Microsoft.Graph.Authentication,Microsoft.Graph.Groups
 
 [CmdletBinding()]
 param (
