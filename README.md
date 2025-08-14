@@ -12,7 +12,8 @@
   - [4. Multiple groups via pipeline](#4-multiple-groups-via-pipeline)
   - [5. Export all distribution groups member count and owners](#5-export-all-distribution-groups-member-count-and-owners)
   - [6. Export all dynamic distribution groups member count and owners](#6-export-all-dynamic-distribution-groups-member-count-and-owners)
-  - [5. Export all Microsoft 365 groups member count and owners](#5-export-all-microsoft-365-groups-member-count-and-owners)
+  - [7. Export all Microsoft 365 groups member count and owners](#7-export-all-microsoft-365-groups-member-count-and-owners)
+  - [7. Export all supported group types member count and owners](#7-export-all-supported-group-types-member-count-and-owners)
 - [Script Flow Overview](#script-flow-overview)
 - [Script Architecture Overview](#script-architecture-overview)
 - [Notes](#notes)
@@ -109,11 +110,18 @@ $dynamicDistributionGroup = Get-DynamicDistributionGroup -ResultSize Unlimited -
 $dynamicDistributionGroup | .\Get-EXOGroupMemberCount.ps1 -Verbose -OutputCsv ".\dynamicDistributionGroup.csv"
 ```
 
-### 5. Export all Microsoft 365 groups member count and owners
+### 7. Export all Microsoft 365 groups member count and owners
 
 ```powershell
 $unifiedGroup = Get-UnifiedGroup -ResultSize Unlimited
 $unifiedGroup | .\Get-EXOGroupMemberCount.ps1 -Verbose -OutputCsv ".\unifiedGroup.csv"
+```
+
+### 7. Export all supported group types member count and owners
+
+```powershell
+$allGroups = ($staticDistributionGroup + $dynamicDistributionGroup + $unifiedGroup)
+$allGroups | .\Get-EXOGroupMemberCount.ps1 -Verbose -OutputCsv ".\allGroups.csv"
 ```
 
 ---
