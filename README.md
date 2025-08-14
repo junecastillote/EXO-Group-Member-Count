@@ -10,6 +10,9 @@
   - [2. Export results to CSV](#2-export-results-to-csv)
   - [3. Append results to a new or existing CSV](#3-append-results-to-a-new-or-existing-csv)
   - [4. Multiple groups via pipeline](#4-multiple-groups-via-pipeline)
+  - [5. Export all distribution groups member count and owners](#5-export-all-distribution-groups-member-count-and-owners)
+  - [6. Export all dynamic distribution groups member count and owners](#6-export-all-dynamic-distribution-groups-member-count-and-owners)
+  - [5. Export all Microsoft 365 groups member count and owners](#5-export-all-microsoft-365-groups-member-count-and-owners)
 - [Script Flow Overview](#script-flow-overview)
 - [Script Architecture Overview](#script-architecture-overview)
 - [Notes](#notes)
@@ -90,6 +93,27 @@ The script returns or exports objects with the following properties:
 
 ```powershell
 "Marketing Team","Sales Team" | .\Get-EXOGroupMemberCount.ps1 -OutputCsv ".\Groups.csv"
+```
+
+### 5. Export all distribution groups member count and owners
+
+```powershell
+$staticDistributionGroup = Get-DistributionGroup -ResultSize Unlimited -IncludeManagedByWithDisplayNames
+$staticDistributionGroup | .\Get-EXOGroupMemberCount.ps1 -Verbose -OutputCsv ".\staticDistributionGroup.csv"
+```
+
+### 6. Export all dynamic distribution groups member count and owners
+
+```powershell
+$dynamicDistributionGroup = Get-DynamicDistributionGroup -ResultSize Unlimited -IncludeManagedByWithDisplayNames
+$dynamicDistributionGroup | .\Get-EXOGroupMemberCount.ps1 -Verbose -OutputCsv ".\dynamicDistributionGroup.csv"
+```
+
+### 5. Export all Microsoft 365 groups member count and owners
+
+```powershell
+$unifiedGroup = Get-UnifiedGroup -ResultSize Unlimited
+$unifiedGroup | .\Get-EXOGroupMemberCount.ps1 -Verbose -OutputCsv ".\unifiedGroup.csv"
 ```
 
 ---
