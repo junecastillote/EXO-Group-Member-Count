@@ -98,7 +98,7 @@ The script returns or exports objects with the following properties:
 
 ```text
 +---------------------------------------------------------------+
-|                  Get-EXOGroupMemberCountGraph.ps1             |
+|                  Get-EXOGroupMemberCount.ps1             |
 +---------------------------------------------------------------+
 | Parameters: Identity (req), OutputCsv, Append, ReturnResult   |
 +---------------------------------------------------------------+
@@ -254,5 +254,6 @@ flowchart TD
 
 ## Notes
 
-- The script will exit early if not connected to Exchange Online.
+- The script will exit early if not connected to Exchange Online and Microsoft Graph.
+- The script uses Microsoft Graph API to get the distribution group member count. It is much reliable than the Exchange Online PowerShell `Get-DistributionGroupMember` cmdlet.
 - If neither `-OutputCsv` nor `-ReturnResult` is provided, `-ReturnResult` will be enabled by default.
