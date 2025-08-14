@@ -37,6 +37,18 @@ begin {
         break
     }
 
+    $graphConnected = Get-MgContext
+    if (-not $graphConnected) {
+        Write-Error "Microsoft Graph PowerShell is not connected."
+        if ($MyInvocation.InvocationName -like '*.ps1') {
+            exit 1
+        }
+        else {
+            throw "Microsoft Graph PowerShell is not connected."
+        }
+        break
+    }
+
     if (-not $OutputCsv -and -not $ReturnResult) {
         Write-Verbose "Both -OutputCsv and -ReturnResult are not used. Enabling -ReturnResult by default."
         $ReturnResult = $true
@@ -117,7 +129,7 @@ process {
 
                 if ($groupObject.ManagedBy -and !$groupObject.ManagedByWithDisplayName) {
                     Write-Verbose "  -> Getting owner(s)"
-                    $groupObject = Get-DistributionGroup -Identity $recipientId -IncludeManagedByWithDisplayNames
+                    $groupObject = Get-DynamicDistributionGroup -Identity $recipientId -IncludeManagedByWithDisplayNames
                 }
 
                 $groupOwners = $groupObject.ManagedByWithDisplayName
