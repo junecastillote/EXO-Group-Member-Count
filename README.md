@@ -196,19 +196,19 @@ flowchart TD
     C -- No --> C1[Write-Error + Exit/Throw]
     C -- Yes --> D{Graph Connected?}
     D -- No --> D1[Write-Error + Exit/Throw]
-    D -- Yes --> E[Set ReturnResult=$true if no OutputCsv & no ReturnResult]
+    D -- Yes --> E[Set ReturnResult to true if no OutputCsv & no ReturnResult]
     E --> F{OutputCsv Exists?}
     F -- No --> G[Continue]
     F -- Yes & Append=false --> H[Overwrite file]
     F -- Yes & Append=true --> I[Append to file]
-    H --> J[Define acceptedTypes[]]
+    H --> J[Define acceptedTypes list]
     I --> J
     G --> J
 
     J --> K{PROCESS Block (per Identity)}
     K --> K1[Counter++]
     K1 --> K2{Object type in acceptedTypes?}
-    K2 -- Yes --> K3[$recipientObject = Identity]
+    K2 -- Yes --> K3[Set recipientObject to Identity]
     K2 -- "System.String" --> K4[Get-Recipient]
     K2 -- Else --> K5[continue]
 
@@ -219,21 +219,21 @@ flowchart TD
     %% Mail Group
     M -- Mail*Group --> M1[Ensure full groupObject]
     M1 --> M2[Get owners]
-    M2 --> M3[Get member count (Graph)]
+    M2 --> M3[Get member count using Graph]
     M3 --> M4[TeamsEnabled = N/A]
     M4 --> N[Add result object]
 
     %% Dynamic Distribution Group
     M -- DynamicDistributionGroup --> Dg1[Ensure full groupObject]
     Dg1 --> Dg2[Get owners]
-    Dg2 --> Dg3[Get member count (Get-DynamicDistributionGroupMember)]
+    Dg2 --> Dg3[Get member count using Get-DynamicDistributionGroupMember]
     Dg3 --> Dg4[TeamsEnabled = N/A]
     Dg4 --> N
 
     %% GroupMailbox
     M -- GroupMailbox --> Gm1[Ensure full groupObject]
-    Gm1 --> Gm2[Get owners (Get-UnifiedGroupLinks)]
-    Gm2 --> Gm3[Get member count (property)]
+    Gm1 --> Gm2[Get owners using Get-UnifiedGroupLinks]
+    Gm2 --> Gm3[Get member count from property]
     Gm3 --> Gm4[TeamsEnabled Yes/No]
     Gm4 --> N
 
@@ -254,7 +254,6 @@ flowchart TD
     Q5 --> Q7[Stop stopwatch + Verbose total time]
     Q6 --> Q7
     Q7 --> R([End Script])
-
 ```
 
 ## Notes
