@@ -189,71 +189,67 @@ The script returns or exports objects with the following properties:
 
 ```mermaid
 flowchart TD
-    A([Start Script]) --> B{BEGIN Block}
-    B --> B1[Start Stopwatch]
-    B1 --> B2[Init results list, counter]
-    B2 --> C{EXO Connected?}
-    C -- No --> C1[Write-Error + Exit/Throw]
-    C -- Yes --> D{Graph Connected?}
-    D -- No --> D1[Write-Error + Exit/Throw]
-    D -- Yes --> E[Set ReturnResult to true if no OutputCsv & no ReturnResult]
-    E --> F{OutputCsv Exists?}
-    F -- No --> G[Continue]
-    F -- Yes & Append=false --> H[Overwrite file]
-    F -- Yes & Append=true --> I[Append to file]
-    H --> J[Define acceptedTypes list]
+    A[Start script] --> B[BEGIN block]
+    B --> B1[Start stopwatch]
+    B1 --> B2[Init results list and counter]
+    B2 --> C{EXO connected}
+    C -- No --> C1[Write-Error and exit or throw]
+    C -- Yes --> D{Graph connected}
+    D -- No --> D1[Write-Error and exit or throw]
+    D -- Yes --> E[Set ReturnResult true if no OutputCsv and no ReturnResult]
+    E --> F{OutputCsv exists}
+    F -- No --> J[Define acceptedTypes list]
+    F -- Yes --> F1{Append switch}
+    F1 -- False --> H[Overwrite file]
+    F1 -- True --> I[Append to file]
+    H --> J
     I --> J
-    G --> J
 
-    J --> K{PROCESS Block (per Identity)}
-    K --> K1[Counter++]
-    K1 --> K2{Object type in acceptedTypes?}
-    K2 -- Yes --> K3[Set recipientObject to Identity]
-    K2 -- "System.String" --> K4[Get-Recipient]
-    K2 -- Else --> K5[continue]
+    J --> K{Process each identity}
+    K --> K1[Increment counter]
+    K1 --> K2{Type in acceptedTypes}
+    K2 -- Yes --> K3[Set recipientObject to identity]
+    K2 -- String --> K4[Get-Recipient]
+    K2 -- Other --> K5[Skip item]
 
-    K3 --> L[Get recipientId, log info]
+    K3 --> L[Get recipientId and log]
     K4 --> L
-    L --> M{RecipientTypeDetails?}
+    L --> M{RecipientTypeDetails}
 
-    %% Mail Group
-    M -- Mail*Group --> M1[Ensure full groupObject]
+    M -- Mail group --> M1[Ensure full group object]
     M1 --> M2[Get owners]
     M2 --> M3[Get member count using Graph]
-    M3 --> M4[TeamsEnabled = N/A]
+    M3 --> M4[Teams enabled NA]
     M4 --> N[Add result object]
 
-    %% Dynamic Distribution Group
-    M -- DynamicDistributionGroup --> Dg1[Ensure full groupObject]
+    M -- Dynamic distribution group --> Dg1[Ensure full group object]
     Dg1 --> Dg2[Get owners]
-    Dg2 --> Dg3[Get member count using Get-DynamicDistributionGroupMember]
-    Dg3 --> Dg4[TeamsEnabled = N/A]
+    Dg2 --> Dg3[Get member count using Get DynamicDistributionGroupMember]
+    Dg3 --> Dg4[Teams enabled NA]
     Dg4 --> N
 
-    %% GroupMailbox
-    M -- GroupMailbox --> Gm1[Ensure full groupObject]
-    Gm1 --> Gm2[Get owners using Get-UnifiedGroupLinks]
+    M -- Group mailbox --> Gm1[Ensure full group object]
+    Gm1 --> Gm2[Get owners using Get UnifiedGroupLinks]
     Gm2 --> Gm3[Get member count from property]
-    Gm3 --> Gm4[TeamsEnabled Yes/No]
+    Gm3 --> Gm4[Teams enabled Yes or No]
     Gm4 --> N
 
-    %% Default
-    M -- Else --> K5
+    M -- Other --> K5
 
-    N --> O[On error → Write-Error & continue]
-    O --> P([Loop until all identities processed])
+    N --> O[Errors are logged and processing continues]
+    O --> P[After last item]
 
-    P --> Q{END Block}
-    Q --> Q1{OutputCsv?}
-    Q1 -- Yes --> Q2[Export-CSV (append or overwrite)]
+    P --> Q[END block]
+    Q --> Q1{OutputCsv specified}
+    Q1 -- Yes --> Q2[Export CSV]
     Q1 -- No --> Q3[Skip CSV export]
-    Q2 --> Q4{ReturnResult?}
+    Q2 --> Q4{ReturnResult specified}
     Q3 --> Q4
     Q4 -- Yes --> Q5[Output results]
-    Q4 -- No --> Q6[Skip output]
-    Q5 --> Q7[Stop stopwatch + Verbose total time]
+    Q4 -- No --> Q6[Skip result output]
+    Q5 --> Q7[Stop stopwatch and write total time]
     Q6 --> Q7
-    Q7 --> R([End Script])
+    Q7 --> R[End script]
 ```
 
 ## Notes
