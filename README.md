@@ -8,7 +8,7 @@
 - [Usage Examples](#usage-examples)
   - [1. Return results to screen](#1-return-results-to-screen)
   - [2. Export results to CSV](#2-export-results-to-csv)
-  - [3. Resolve owner names](#3-resolve-owner-names)
+  - [3. Append results to a new or existing CSV](#3-append-results-to-a-new-or-existing-csv)
   - [4. Multiple groups via pipeline](#4-multiple-groups-via-pipeline)
 - [Script Flow Overview](#script-flow-overview)
 - [Script Architecture Overview](#script-architecture-overview)
@@ -27,25 +27,27 @@ It supports exporting results to CSV or returning them directly in the console.
 ## Requirements
 
 - **PowerShell**: 7.3 or later (recommended), Windows PowerShell 5.1
-- **Modules**: [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement) 3.7.0 or later.
+- **Modules**:
+  - [ExchangeOnlineManagement](https://www.powershellgallery.com/packages/ExchangeOnlineManagement) 3.7.0 or later.
+  - [Microsoft Graph PowerShell SDK](https://www.powershellgallery.com/packages/Microsoft.Graph)
 - An active **Exchange Online PowerShell session** (via `Connect-ExchangeOnline`)
+- An active **Microsoft Graph PowerShell session** (via `Connect-MgGraph`)
 
 ## Features
 
 - Retrieves group type, primary SMTP address, member count, and Teams-enabled status.
-- Optionally resolves owner details.
 - Supports pipeline input for multiple groups.
 - Can output to both CSV and console.
-- Validates Exchange Online connection before processing.
+- Validates Exchange Online and Microsoft Graph connections before processing.
 
 ## Parameters
 
-| Parameter       | Type                    | Mandatory | Description                                                                                           |
-| --------------- | ----------------------- | --------- | ----------------------------------------------------------------------------------------------------- |
-| `-Identity`     | String / Pipeline input | Yes       | One or more group identities (name, alias, SMTP address, GUID, etc.). Accepts pipeline input.         |
-| `-ResolveOwner` | Switch                  | No        | If specified, resolves the **ManagedBy** property to user-friendly identifiers (e.g., WindowsLiveId). |
-| `-OutputCsv`    | String                  | No        | Path to a CSV file to export results. **If the file exists, it will be overwritten.**                     |
-| `-ReturnResult` | Switch                  | No        | Returns the result objects to the pipeline. Enabled automatically if no output method is specified.   |
+| Parameter       | Type                    | Mandatory | Description                                                                                         |
+| --------------- | ----------------------- | --------- | --------------------------------------------------------------------------------------------------- |
+| `-Identity`     | String / Pipeline input | Yes       | One or more group identities (name, alias, SMTP address, GUID, etc.). Accepts pipeline input.       |
+| `-OutputCsv`    | String                  | No        | Path to a CSV file to export results. **If the file exists, it will be overwritten.**               |
+| `-Append`       | Switch                  | No        | Appends the output to the output CSV file instead of overwriting it.                                |
+| `-ReturnResult` | Switch                  | No        | Returns the result objects to the pipeline. Enabled automatically if no output method is specified. |
 
 ---
 
@@ -59,7 +61,7 @@ The script returns or exports objects with the following properties:
 | `GroupEmail`   | Primary SMTP address                                                            |
 | `GroupType`    | Recipient type details (e.g., `GroupMailbox`, `MailUniversalDistributionGroup`) |
 | `TeamsEnabled` | `Yes` / `No` for Teams-enabled Microsoft 365 Groups, or `N/A` for other types   |
-| `Owners`       | Owner(s) of the group (resolved if `-ResolveOwner` is used)                     |
+| `Owners`       | Owner(s) of the group.                                                          |
 | `MemberCount`  | Number of members in the group                                                  |
 
 ---
@@ -78,16 +80,16 @@ The script returns or exports objects with the following properties:
 .\Get-EXOGroupMemberCount.ps1 -Identity "Marketing Team" -OutputCsv "C:\Reports\GroupMembers.csv"
 ```
 
-### 3. Resolve owner names
+### 3. Append results to a new or existing CSV
 
 ```PowerShell
-.\Get-EXOGroupMemberCount.ps1 -Identity "Marketing Team" -ResolveOwner
+.\Get-EXOGroupMemberCount.ps1 -Identity "Marketing Team" -OutputCsv "C:\Reports\GroupMembers.csv" -Append
 ```
 
 ### 4. Multiple groups via pipeline
 
 ```powershell
-"Marketing Team","Sales Team" | .\Get-EXOGroupMemberCount.ps1 -ResolveOwner -OutputCsv ".\Groups.csv"
+"Marketing Team","Sales Team" | .\Get-EXOGroupMemberCount.ps1 -OutputCsv ".\Groups.csv"
 ```
 
 ---
@@ -95,42 +97,89 @@ The script returns or exports objects with the following properties:
 ## Script Flow Overview
 
 ```text
-+--------------------------+
-|   Start Script           |
-+--------------------------+
-           |
-           v
-+--------------------------+
-| BEGIN block              |
-| - Verify EXO connection  |
-| - Initialize result list |
-| - Handle defaults        |
-| - Prepare output file    |
-+--------------------------+
-           |
-           v
-+--------------------------+
-| PROCESS block            |
-| - For each Identity:     |
-|   * Get-Recipient        |
-|   * Identify group type  |
-|   * Get group details    |
-|   * Count members        |
-|   * Resolve owners (opt) |
-|   * Store in results     |
-+--------------------------+
-           |
-           v
-+--------------------------+
-| END block                |
-| - Export to CSV (if set) |
-| - Return results (if set)|
-+--------------------------+
-           |
-           v
-+--------------------------+
-|         Done             |
-+--------------------------+
++---------------------------------------------------------------+
+|                  Get-EXOGroupMemberCount.ps1             |
++---------------------------------------------------------------+
+| Parameters: Identity (req), OutputCsv, Append, ReturnResult   |
++---------------------------------------------------------------+
+        |
+        v
++---------------------------+
+| BEGIN block               |
++---------------------------+
+| Start stopwatch           |
+| Init results list, counter|
+|                           |
+| Check EXO connection      |
+|   ├─ No → Error + exit    |
+|   └─ Yes → Continue       |
+| Check Graph connection    |
+|   ├─ No → Error + exit    |
+|   └─ Yes → Continue       |
+|                           |
+| If no OutputCsv & no      |
+| ReturnResult → set        |
+| ReturnResult=$true        |
+|                           |
+| If OutputCsv exists:      |
+|   ├─ Append=$false →      |
+|       Overwrite file      |
+|   └─ Append=$true →       |
+|       Append to file      |
+|                           |
+| Define acceptedTypes[]    |
++---------------------------+
+        |
+        v
++---------------------------+
+| PROCESS block (per item)  |
++---------------------------+
+| counter++                 |
+| Determine $objTypeName    |
+| switch($objTypeName):     |
+|   ├─ In acceptedTypes →   |
+|         $recipientObject=Identity
+|   ├─ "System.String" →    |
+|         Get-Recipient     |
+|   └─ Else → continue      |
+|                           |
+| Get $recipientId, log info|
+|                           |
+| switch($RecipientTypeDetails):
+|   ├─ Mail*Group ----------+
+|   |   Ensure full groupObj|
+|   |   Get owners          |
+|   |   Get member count    |
+|   |   TeamsEnabled = N/A  |
+|   +-----------------------+
+|   ├─ DynamicDistribution -+
+|   |   Ensure full groupObj|
+|   |   Get owners          |
+|   |   Get member count    |
+|   |   TeamsEnabled = N/A  |
+|   +-----------------------+
+|   ├─ GroupMailbox --------+
+|   |   Ensure full groupObj|
+|   |   Get owners          |
+|   |   Get member count    |
+|   |   TeamsEnabled = Yes/No
+|   +-----------------------+
+|   └─ Else → continue      |
+|                           |
+| Add result object to list |
+| On error → Write-Error &  |
+| continue                  |
++---------------------------+
+        |
+        v
++---------------------------+
+| END block                 |
++---------------------------+
+| If OutputCsv → Export-CSV |
+| If ReturnResult → output  |
+| Stop stopwatch            |
+| Verbose: total time       |
++---------------------------+
 
 ```
 
@@ -140,85 +189,71 @@ The script returns or exports objects with the following properties:
 
 ```mermaid
 flowchart TD
-    %% USER INPUT
-    subgraph User
-        P1[Identity param]
-        P2[ResolveOwner switch]
-        P3[OutputCsv param]
-        P4[ReturnResult switch]
-    end
-
-    %% SCRIPT BLOCKS
-    subgraph Script
-        A[Start Script]
-        B[BEGIN block]
-        C{EXO Connected?}
-        D[Init result list & Defaults]
-        E[Prepare output file if needed]
-        F[PROCESS block]
-        G[Get-Recipient for each Identity]
-        H[Identify group type]
-        I[Retrieve group details]
-        J[Count members]
-        K{Resolve owners?}
-        L[Get owners info]
-        M[Skip owner resolution]
-        N[Store in results]
-        O[END block]
-        P[Export CSV if requested]
-        Q[Return results if requested]
-        R[Done]
-    end
-
-    %% EXCHANGE ONLINE
-    subgraph ExchangeOnline
-        E1[Get-ConnectionInformation]
-        E2[Get-Recipient]
-        E3["Get-DistributionGroup / Get-DynamicDistributionGroup / Get-UnifiedGroup"]
-        E4["Get-DistributionGroupMember / Get-Recipient (for owners)"]
-    end
-
-    %% CONNECTION FLOW
-    P1 --> A
-    P2 --> A
-    P3 --> A
-    P4 --> A
-    A --> B
-    B --> C
-    C -->|No| Z[Throw error & Exit]
-    C -->|Yes| D
-    D --> E
-    E --> F
-
-    %% PROCESS FLOW
-    F --> G
-    G --> H
-    H --> I
+    A[Start script] --> B[BEGIN block]
+    B --> B1[Start stopwatch]
+    B1 --> B2[Init results list and counter]
+    B2 --> C{EXO connected}
+    C -- No --> C1[Write-Error and exit or throw]
+    C -- Yes --> D{Graph connected}
+    D -- No --> D1[Write-Error and exit or throw]
+    D -- Yes --> E[Set ReturnResult true if no OutputCsv and no ReturnResult]
+    E --> F{OutputCsv exists}
+    F -- No --> J[Define acceptedTypes list]
+    F -- Yes --> F1{Append switch}
+    F1 -- False --> H[Overwrite file]
+    F1 -- True --> I[Append to file]
+    H --> J
     I --> J
-    J --> K
-    K -->|Yes| L
-    K -->|No| M
-    L --> N
-    M --> N
-    N --> O
-    O --> P
-    O --> Q
-    P --> R
-    Q --> R
 
-    %% DATA FLOW TO/FROM EXO
-    B --> E1
-    E1 --> B
-    G --> E2
-    E2 --> G
-    I --> E3
-    E3 --> I
-    J --> E4
-    L --> E4
-    E4 --> L
+    J --> K{Process each identity}
+    K --> K1[Increment counter]
+    K1 --> K2{Type in acceptedTypes}
+    K2 -- Yes --> K3[Set recipientObject to identity]
+    K2 -- String --> K4[Get-Recipient]
+    K2 -- Other --> K5[Skip item]
+
+    K3 --> L[Get recipientId and log]
+    K4 --> L
+    L --> M{RecipientTypeDetails}
+
+    M -- Mail group --> M1[Ensure full group object]
+    M1 --> M2[Get owners]
+    M2 --> M3[Get member count using Graph]
+    M3 --> M4[Teams enabled NA]
+    M4 --> N[Add result object]
+
+    M -- Dynamic distribution group --> Dg1[Ensure full group object]
+    Dg1 --> Dg2[Get owners]
+    Dg2 --> Dg3[Get member count using Get DynamicDistributionGroupMember]
+    Dg3 --> Dg4[Teams enabled NA]
+    Dg4 --> N
+
+    M -- Group mailbox --> Gm1[Ensure full group object]
+    Gm1 --> Gm2[Get owners using Get UnifiedGroupLinks]
+    Gm2 --> Gm3[Get member count from property]
+    Gm3 --> Gm4[Teams enabled Yes or No]
+    Gm4 --> N
+
+    M -- Other --> K5
+
+    N --> O[Errors are logged and processing continues]
+    O --> P[After last item]
+
+    P --> Q[END block]
+    Q --> Q1{OutputCsv specified}
+    Q1 -- Yes --> Q2[Export CSV]
+    Q1 -- No --> Q3[Skip CSV export]
+    Q2 --> Q4{ReturnResult specified}
+    Q3 --> Q4
+    Q4 -- Yes --> Q5[Output results]
+    Q4 -- No --> Q6[Skip result output]
+    Q5 --> Q7[Stop stopwatch and write total time]
+    Q6 --> Q7
+    Q7 --> R[End script]
 ```
 
 ## Notes
 
-- The script will exit early if not connected to Exchange Online.
+- The script will exit early if not connected to Exchange Online and Microsoft Graph.
+- The script uses Microsoft Graph API to get the distribution group member count. It is much reliable than the Exchange Online PowerShell `Get-DistributionGroupMember` cmdlet.
 - If neither `-OutputCsv` nor `-ReturnResult` is provided, `-ReturnResult` will be enabled by default.
